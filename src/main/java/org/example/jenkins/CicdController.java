@@ -10,6 +10,6 @@ public class CicdController {
 
     @GetMapping("/test")
     public String test() {
-        return "v5";
+        return "v6";
     }
 }
