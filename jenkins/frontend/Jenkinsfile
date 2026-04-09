@@ -6,6 +6,10 @@ apiVersion: v1
 kind: Pod
 spec:
   containers:
+  - name: node
+    image: node:20-alpine
+    command: ['cat']
+    tty: true
   - name: docker
     image: docker:latest
     command: ['cat']
@@ -37,6 +41,18 @@ spec:
         stage('Checkout') {
             steps {
                 checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                container('node') {
+                    sh '''
+                        cd frontend
+                        npm ci
+                        npm run build
+                    '''
+                }
             }
         }
 
