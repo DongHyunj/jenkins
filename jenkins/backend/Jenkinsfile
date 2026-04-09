@@ -1,5 +1,29 @@
 pipeline {
-    agent any
+    agent {
+        kubernetes {
+            yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: docker
+    image: docker:latest
+    command: ['cat']
+    tty: true
+    volumeMounts:
+    - mountPath: /var/run/docker.sock
+      name: docker-sock
+  - name: kubectl
+    image: bitnami/kubectl:latest
+    command: ['cat']
+    tty: true
+  volumes:
+  - name: docker-sock
+    hostPath:
+      path: /var/run/docker.sock
+"""
+        }
+    }
 
     environment {
         IMAGE_NAME = 'deatytim/board-backend'
@@ -15,36 +39,32 @@ pipeline {
 
         stage('Docker Build & Push') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'docker-hub-credentials',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
-                )]) {
-                    sh '''
-                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                        docker build -t $IMAGE_NAME:$IMAGE_TAG .
-                        docker push $IMAGE_NAME:$IMAGE_TAG
-                    '''
+                container('docker') {
+                    withCredentials([usernamePassword(
+                        credentialsId: 'docker-hub-credentials',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )]) {
+                        sh '''
+                            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                            docker build -t $IMAGE_NAME:$IMAGE_TAG .
+                            docker push $IMAGE_NAME:$IMAGE_TAG
+                            docker logout
+                        '''
+                    }
                 }
             }
         }
 
         stage('Deploy to K8S') {
             steps {
-                sh '''
-                    kubectl apply -f k8s/backend.yml
-                    kubectl rollout restart deployment/board-backend -n jdh
-                '''
+                container('kubectl') {
+                    sh '''
+                        kubectl apply -f k8s/backend.yml
+                        kubectl rollout restart deployment/board-backend -n jdh
+                    '''
+                }
             }
         }
     }
-
-    post {
-        always {
-            sh 'docker logout'
-        }
-    }
 }
-
-
-
