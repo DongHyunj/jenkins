@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb-svc
+  namespace: jdh
+spec:
+  selector:
+    app: mariadb
+  ports:
+    - port: 3306
+      targetPort: 3306
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: board-backend-svc
+  namespace: jdh
+spec:
+  selector:
+    app: board-backend
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30808
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: board-frontend-svc
+  namespace: jdh
+spec:
+  selector:
+    app: board-frontend
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30080
+  type: NodePort

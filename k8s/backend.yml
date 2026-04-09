@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: board-backend
+  namespace: jdh
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: board-backend
+  template:
+    metadata:
+      labels:
+        app: board-backend
+    spec:
+      containers:
+        - name: board-backend
+          image: deatytim/board-backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: board-backend-config

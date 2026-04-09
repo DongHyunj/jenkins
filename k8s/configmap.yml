@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: board-backend-config
+  namespace: jdh
+data:
+  DB_HOST: "mariadb-svc"
+  DB_PORT: "3306"
+  DB_NAME: "boarddb"
+  DB_USER: "root"
+  DB_PASSWORD: "qwer1234"
